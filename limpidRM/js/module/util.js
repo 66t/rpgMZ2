@@ -68,6 +68,7 @@ function Utils() {
 Utils.isNwjs = function() {
     return typeof require === "function" && typeof process === "object";
 };
+Utils.isLocal = function() {return window.location.href.startsWith("file:");};
 Utils.encodeURI = function(str) {
     return encodeURIComponent(str).replace(/%2F/g, "/");
 };
@@ -185,20 +186,20 @@ Utils.D = function(s) {
     }
     return total;
 };
-Utils.sinNum = function(max, i) {return Math.sin(Math.PI / 2 / max * i).toFixed(7);};
+Utils.sinNum = function(max, i) {return Math.sin(Math.PI / 2 / max * i);};
 Utils.lengthNum=function(num){
     try {
         if(isNaN(num))
         {
             if(num.split("w").length>1) {
                 let arr = num.split("w")
-                let a = parseFloat(arr[0]) * 0.01 * World.windowWidth
+                let a = parseFloat(arr[0]) * 0.01 * World.canvasWidth
                 let b = arr[1] ? parseFloat(arr[1]) : 0
                 return a + b
             }
             else if(num.split("h").length>1) {
                 let arr = num.split("h")
-                let a = parseFloat(arr[0]) * 0.01 * World.windowHeight
+                let a = parseFloat(arr[0]) * 0.01 * World.canvasHeight
                 let b = arr[1] ? parseFloat(arr[1]) : 0
                 return a + b
             }

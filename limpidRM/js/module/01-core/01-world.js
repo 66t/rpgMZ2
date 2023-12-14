@@ -1,6 +1,6 @@
 function World() {throw new Error("static class");}
-World.baseMark = 128
-World.canvasWidth = 16*World.baseMark
+World.baseMark = 64
+World.canvasWidth = 13.5*World.baseMark
 World.canvasHeight = 9*World.baseMark
 World.windowWidth = 0
 World.windowHeight = 0
@@ -36,8 +36,7 @@ World.initCanvas=function () {
           height: this.canvasHeight,
           resolution: window.devicePixelRatio,
           antialias: true,
-          autoStart: false,
-          backgroundColor: 0x33aaee
+          autoStart: false
       })
       PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL;
       document.body.appendChild(this.app.view)
@@ -99,8 +98,6 @@ World.initFps=function () {
 }
 World.initFont=function () {
     FontManager.load("font","font.ttf")
-    FontManager.load("text","mplus-1m-regular.ttf")
-    FontManager.load("magic","magic.ttf")
     FontManager.load("dot","dot.ttf")
 }
 
@@ -142,8 +139,7 @@ World.onTick=function(deltaTime){
     this.fpsCount = 1000 / this.elapsedTime
     this.deltaTime = Math.max(0, time - this.currentTime)
     this.lastUpdateTime=time
-    if(this.timeStamp++ % 15 === 0) 
-        this.drawFps()
+    if(this.timeStamp++ % 15 === 0) this.drawFps()
 }
 
 World.canRender=function (){return !!this.app.stage}
@@ -179,7 +175,8 @@ World.setupEventHandlers=function (){
 World.cursorMove=function (evnet) {
     let sx = event.clientX - World.canvas.x
     let sy = event.clientY - World.canvas.y
-    this.cursor ={x:sx / World.scale / window.devicePixelRatio,y:sy / World.scale / window.devicePixelRatio}
+    this.cursor.x = sx / World.scale / window.devicePixelRatio
+    this.cursor.y = sy / World.scale / window.devicePixelRatio
 }
 
 World.onKeyDown=function (evnet) {
@@ -217,6 +214,7 @@ World.setScale=function (scale){
         canvasStyle.transform = `scale(${scale}, ${scale})`
         canvasStyle.left = `calc((-${canvasOffsetWidth}px * (1 - ${scale})) / 2 + (${this.windowWidth}px - ${canvasOffsetWidth}px * ${scale}) / 2)`
         canvasStyle.top = `calc((-${canvasOffsetHeight}px * (1 - ${scale})) / 2 + (${this.windowHeight}px - ${canvasOffsetHeight}px * ${scale}) / 2)`
+        this.cursorActi=false
     }
 }
 
@@ -224,8 +222,12 @@ World.change=function (){
     if(document.visibilityState === 'hidden') this.hide()
     else this.acti()
 }
-World.acti=function (){Tone.Master.mute = false}
-World.hide=function (){Tone.Master.mute = true}
+World.acti=function (){
+    Conductor.acti(200)
+}
+World.hide=function (){
+    Conductor.hide(200)
+}
 World.unload=function (){PIXI.utils.clearTextureCache();}
 World.isFull = function (){return document.fullScreenElement || document.mozFullScreen || document.webkitFullscreenElement}
 World.requestFullScreen=function (){

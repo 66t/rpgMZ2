@@ -7,6 +7,7 @@ Scene.previousScene = null
 Scene.previousClass = null
 Scene.smoothDeltaTime = 1
 Scene.elapsedTime = 0
+Scene.snapshot=null
 Scene.run=function (sceneClass) {
   try {
       this.initialize()
@@ -35,14 +36,12 @@ Scene.update=function (deltaTime){
     catch (e){}
 }
 Scene.updateOperate=function (){
-    //操作  
+    Keyboard.update();
+    Touch.update();
 }
 Scene.updateScene = function() {
     if (this.scene) {
-        if (this.scene.isStarted()) {
-            if (this.isGameActive())
-                this.scene.update()
-        }
+        if (this.scene.isStarted()) this.scene.update()
         else if (this.scene.isReady()) {
             this.onBeforeSceneStart();
             this.scene.start();
@@ -85,10 +84,7 @@ Scene.changeScene=function (){
     }
 }
 Scene.isSceneChanging = function() {return this.exiting || !!this.nextScene;};
-Scene.isGameActive=function (){
-    try {return window.top.document.hasFocus()}
-    catch (e) {return true}
-}
+
 Scene.onSceneStart = function() {
     World.setStage(this.scene);
 }
@@ -128,6 +124,12 @@ Scene.clearStack=function (){
     this.stack = []
 }
 
+Scene.snapForBackground = function() {
+    LIM.mouse.alpha=0
+    if (this.snapshot) this.snapshot.destroy();
+    this.snapshot = Bitmap.snap(this.scene);
+    LIM.mouse.alpha=1
+};
 
 function Stage() {this.initialize(...arguments);}
 Stage.prototype = Object.create(PIXI.Container.prototype);
@@ -138,6 +140,7 @@ Stage.prototype.initialize = function() {
     this.started = false
     this.active = false
     this.sortableChildren = true
+    this.addChild(LIM.mouse)
 };
 Stage.prototype.destroy = function() {
     PIXI.Container.prototype.destroy.call(this,{children:true,texture:true})
@@ -169,7 +172,9 @@ Stage.prototype.isActive = function() {
 Stage.prototype.isStarted = function() {
     return this.started
 }
-Stage.prototype.terminate = function() {}
+Stage.prototype.terminate = function() {
+    this.removeChildren()
+}
 
 
 function Rectangle() {this.initialize(...arguments);}
@@ -210,12 +215,12 @@ Bitmap.load = function(url) {
     return bitmap;
 };
 Bitmap.snap = function(stage) {
-    const width = Graphics.width;
-    const height = Graphics.height;
+    const width = World.canvasWidth;
+    const height = World.canvasHeight;
     const bitmap = new Bitmap(width, height);
     const renderTexture = PIXI.RenderTexture.create(width, height);
     if (stage) {
-        const renderer = Graphics.app.renderer;
+        const renderer = World.app.renderer;
         renderer.render(stage, renderTexture);
         stage.worldTransform.identity();
         const canvas = renderer.extract.canvas(renderTexture);
@@ -366,11 +371,59 @@ Bitmap.prototype.clearRect = function(x, y, width, height) {
 Bitmap.prototype.clear = function() {
     this.clearRect(0, 0, this.width, this.height);
 };
+
 Bitmap.prototype.fillRect = function(x, y, width, height, color) {
     const context = this.context;
     context.save();
     context.fillStyle = color;
     context.fillRect(x, y, width, height);
+    context.restore();
+    this._baseTexture.update();
+};
+Bitmap.prototype.drawLine=function (x1, y1, x2, y2, color, lineWidth) {
+    const context = this.context;
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.stroke();
+    context.restore();
+}
+
+
+Bitmap.prototype.drawArc=function (x1, y1, x2, y2, color, lineWidth) {
+    const context = this.context;
+    context.save();
+    context.beginPath();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    const startAngle = Math.atan2(y1 - y2, x1 - x2);
+    const endAngle = Math.atan2(y2 - y2, x2 - x1);
+    context.arc(x1, y1, radius, startAngle, endAngle);
+    context.stroke();
+    context.restore();
+}
+
+Bitmap.prototype.drawCurve=function (x1, y1,x2, y2, color, lineWidth) {
+    const context = this.context;
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.quadraticCurveTo(x1 + (x2 - x1) / 2, y1, x2, y2);
+    context.stroke();
+    context.restore();
+}
+Bitmap.prototype.strokeRect = function(x, y, width, height, color,lineWidth) {
+    const context = this.context;
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    context.strokeRect(x, y, width, height);
     context.restore();
     this._baseTexture.update();
 };
@@ -395,16 +448,89 @@ Bitmap.prototype.fillRoundedRect = function(x, y, width, height, radius, color) 
     context.restore();
     this._baseTexture.update();
 };
-Bitmap.prototype.fillAll = function(color) {
-    this.fillRect(0, 0, this.width, this.height, color);
-};
-Bitmap.prototype.strokeRect = function(x, y, width, height, color) {
+Bitmap.prototype.strokeRoundedRect = function(x, y, width, height, radius, color, lineWidth) {
     const context = this.context;
     context.save();
     context.strokeStyle = color;
-    context.strokeRect(x, y, width, height);
+    context.lineWidth = lineWidth;
+
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.lineTo(x + width - radius, y);
+    context.arcTo(x + width, y, x + width, y + radius, radius);
+    context.lineTo(x + width, y + height - radius);
+    context.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    context.lineTo(x + radius, y + height);
+    context.arcTo(x, y + height, x, y + height - radius, radius);
+    context.lineTo(x, y + radius);
+    context.arcTo(x, y, x + radius, y, radius);
+    context.closePath();
+
+    context.stroke();
     context.restore();
     this._baseTexture.update();
+};
+Bitmap.prototype.fillStripedRoundedRect = function(x, y, width, height, radius, stripeHeight, color1, color2) {
+    const context = this.context;
+    context.save();
+    const patternCanvas = document.createElement('canvas');
+    const patternCtx = patternCanvas.getContext('2d');
+    patternCanvas.width = width;
+    patternCanvas.height = stripeHeight * 2;
+    patternCtx.fillStyle = color1;
+    patternCtx.fillRect(0, 0, width, stripeHeight);
+    patternCtx.fillStyle = color2;
+    patternCtx.fillRect(0, stripeHeight, width, stripeHeight);
+    
+    context.fillStyle = context.createPattern(patternCanvas, 'repeat');
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.lineTo(x + width - radius, y);
+    context.arcTo(x + width, y, x + width, y + radius, radius);
+    context.lineTo(x + width, y + height - radius);
+    context.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    context.lineTo(x + radius, y + height);
+    context.arcTo(x, y + height, x, y + height - radius, radius);
+    context.lineTo(x, y + radius);
+    context.arcTo(x, y, x + radius, y, radius);
+    context.closePath();
+    context.fill();
+    context.restore();
+    this._baseTexture.update();
+};
+Bitmap.prototype.fillLatticeRoundedRect = function(x, y, width, height, radius, stripeWidth, stripeHeight, color1, color2) {
+    const context = this.context;
+    context.save();
+    const patternCanvas = document.createElement('canvas');
+    const patternCtx = patternCanvas.getContext('2d');
+    patternCanvas.width = stripeWidth * 2;
+    patternCanvas.height = stripeHeight * 2;
+    
+    patternCtx.fillStyle = color1;
+    patternCtx.fillRect(0,0, stripeWidth, stripeHeight);
+    patternCtx.fillRect(stripeWidth, stripeHeight, stripeWidth, stripeHeight);
+    patternCtx.fillStyle = color2;
+    patternCtx.fillRect(stripeWidth, 0, stripeWidth, stripeHeight);
+    patternCtx.fillRect(0, stripeHeight, stripeWidth, stripeHeight);
+
+    context.fillStyle = context.createPattern(patternCanvas, 'repeat');
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.lineTo(x + width - radius, y);
+    context.arcTo(x + width, y, x + width, y + radius, radius);
+    context.lineTo(x + width, y + height - radius);
+    context.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    context.lineTo(x + radius, y + height);
+    context.arcTo(x, y + height, x, y + height - radius, radius);
+    context.lineTo(x, y + radius);
+    context.arcTo(x, y, x + radius, y, radius);
+    context.closePath();
+    context.fill();
+    context.restore();
+    this._baseTexture.update();
+};
+Bitmap.prototype.fillAll = function(color) {
+    this.fillRect(0, 0, this.width, this.height, color);
 };
 Bitmap.prototype.gradientFillRect = function(x, y, width, height, color1, color2, vertical) {
     const context = this.context;
@@ -425,6 +551,41 @@ Bitmap.prototype.drawCircle = function(x, y, radius, color) {
     context.fillStyle = color;
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2, false);
+    context.fill();
+    context.restore();
+    this._baseTexture.update();
+};
+Bitmap.prototype.strokeCircle = function(x, y, radius, color, lineWidth) {
+    const context = this.context;
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2, false);
+    context.stroke();
+    context.restore();
+    this._baseTexture.update();
+};
+
+Bitmap.prototype.drawPolygon = function(x, y,side, size, color,borderColor,lineWidth) {
+    const context = this.context;
+    context.save();
+    context.fillStyle = color;
+    context.lineWidth = lineWidth||0;
+    context.strokeStyle = borderColor || color;
+    context.beginPath();
+    for (let i = 0; i < side; i++) {
+        const angleRad = Math.PI / (side/2) * i;
+        const xx = x + size * Math.cos(angleRad);
+        const yy = y + size * Math.sin(angleRad);
+        if (i === 0) {
+            context.moveTo(xx, yy);
+        } else {
+            context.lineTo(xx, yy);
+        }
+    }
+    context.closePath();
+    if(lineWidth) context.stroke();
     context.fill();
     context.restore();
     this._baseTexture.update();

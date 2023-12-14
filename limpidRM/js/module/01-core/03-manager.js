@@ -1,4 +1,4 @@
-﻿function ImageManager() {throw new Error("This is a static class");}
+﻿function ImageManager() {throw new Error("static class");}
 ImageManager._cache = {};
 ImageManager._system = {};
 ImageManager._emptyBitmap = new Bitmap(1, 1);
@@ -44,7 +44,7 @@ ImageManager.throwLoadError = function(bitmap) {
 };
 
 
-function FontManager() {throw new Error("This is a static class");}
+function FontManager() {throw new Error("static class");}
 FontManager._urls = {};
 FontManager._states = {};
 FontManager.load = function(family, filename) {

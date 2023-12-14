@@ -4,8 +4,11 @@
             data:[
               { src: "pixi" },
               { src: "crypto-js.min" },
+              { src: "pako.min" },
               { src: "localforage.min" },
-              { src: "tone" }
+              { src: "tone" },
+              { src: "pixi-filters" }
+                
             ]},
         {src:'module',
             data:[
@@ -15,12 +18,34 @@
                         { src: "01-world" } ,
                         { src: "02-scene" } ,
                         { src: "03-manager" },
-                        { src: "04-weaver" }
+                        { src: "04-weaver" },
+                        { src: "05-keyboard" },
+                        { src: "06-touch" },
+                        { src: "07-conductor" },
+                        { src: "08-mouse" },
+                        { src: "09-wave" }
                     ]
                 },
                 { src: "02-scene",
                     data:[
-                        { src: "scene" }
+                        { src: "01-title" },
+                        { src: "02-theater" },
+                        { src: "03-database" }
+                    ]
+                },
+                { src: "02-storage",
+                    data:[
+                        { src: "01-identity" },
+                        { src: "02-database" },
+                        { src: "03-config" }
+                    ]
+                },
+                { src: "03-window",
+                    data:[
+                        { src: "01-title" },
+                        { src: "02-config" },
+                        { src: "03-theater" },
+                        { src: "04-database" }
                     ]
                 },
             ]},
@@ -55,4 +80,5 @@
     };
     ModuleManager.load = function () {this.setup(this.module, "js");};
 var LIM={}
+LIM.Cache={}
 ModuleManager.load();

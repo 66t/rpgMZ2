@@ -1,0 +1,19 @@
+{
+  "tenrin":{
+    "name":"tenrin",
+    "color":"#FAD689",
+    "birthday":425,
+    "height":160,
+    "class":"B",
+    "school":1,
+    "team":1,
+    "alignment":"chaotic_neutral",
+    
+    "interest":"",
+    "specialty":"",
+    "favoriteFood":"",
+    "dislikedFood":"",
+    "weakness":"",
+    "introduction":""
+  }
+}
