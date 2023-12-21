@@ -7,7 +7,7 @@ Scene.previousScene = null
 Scene.previousClass = null
 Scene.smoothDeltaTime = 1
 Scene.elapsedTime = 0
-Scene.snapshot=null
+Scene.snapshot=[]
 Scene.run=function (sceneClass) {
   try {
       this.initialize()
@@ -27,6 +27,7 @@ Scene.updateMain=function (){
     this.changeScene()
     this.updateScene()
     this.updateOperate()
+    LIM.$Dialogue.update()
 }
 Scene.update=function (deltaTime){
     try{
@@ -124,12 +125,16 @@ Scene.clearStack=function (){
     this.stack = []
 }
 
-Scene.snapForBackground = function() {
+Scene.snapForBackground = function(index) {
     LIM.mouse.alpha=0
-    if (this.snapshot) this.snapshot.destroy();
-    this.snapshot = Bitmap.snap(this.scene);
+    if (this.snapshot[index]) this.snapshot[index].destroy();
+    this.snapshot[index] = Bitmap.snap(this.scene);
     LIM.mouse.alpha=1
 };
+Scene.destroyForBackground=function (index){
+    if (this.snapshot[index]) this.snapshot[index].destroy();
+    this.snapshot[index]=null
+}
 
 function Stage() {this.initialize(...arguments);}
 Stage.prototype = Object.create(PIXI.Container.prototype);
@@ -140,6 +145,8 @@ Stage.prototype.initialize = function() {
     this.started = false
     this.active = false
     this.sortableChildren = true
+    this.back=new Sprite(Scene.snapshot[0]||new Bitmap(1,1))
+    this.addChild(this.back)
     this.addChild(LIM.mouse)
 };
 Stage.prototype.destroy = function() {
@@ -372,13 +379,8 @@ Bitmap.prototype.clear = function() {
     this.clearRect(0, 0, this.width, this.height);
 };
 
-Bitmap.prototype.fillRect = function(x, y, width, height, color) {
-    const context = this.context;
-    context.save();
-    context.fillStyle = color;
-    context.fillRect(x, y, width, height);
-    context.restore();
-    this._baseTexture.update();
+Bitmap.prototype.fillAll = function(color) {
+    this.fillRect(0, 0, this.width, this.height, color);
 };
 Bitmap.prototype.drawLine=function (x1, y1, x2, y2, color, lineWidth) {
     const context = this.context;
@@ -391,8 +393,6 @@ Bitmap.prototype.drawLine=function (x1, y1, x2, y2, color, lineWidth) {
     context.stroke();
     context.restore();
 }
-
-
 Bitmap.prototype.drawArc=function (x1, y1, x2, y2, color, lineWidth) {
     const context = this.context;
     context.save();
@@ -406,7 +406,6 @@ Bitmap.prototype.drawArc=function (x1, y1, x2, y2, color, lineWidth) {
     context.stroke();
     context.restore();
 }
-
 Bitmap.prototype.drawCurve=function (x1, y1,x2, y2, color, lineWidth) {
     const context = this.context;
     context.save();
@@ -418,20 +417,10 @@ Bitmap.prototype.drawCurve=function (x1, y1,x2, y2, color, lineWidth) {
     context.stroke();
     context.restore();
 }
-Bitmap.prototype.strokeRect = function(x, y, width, height, color,lineWidth) {
-    const context = this.context;
-    context.save();
-    context.strokeStyle = color;
-    context.lineWidth = lineWidth;
-    context.strokeRect(x, y, width, height);
-    context.restore();
-    this._baseTexture.update();
-};
 Bitmap.prototype.fillRoundedRect = function(x, y, width, height, radius, color) {
     const context = this.context;
     context.save();
     context.fillStyle = color;
-
     context.beginPath();
     context.moveTo(x + radius, y);
     context.lineTo(x + width - radius, y);
@@ -529,44 +518,36 @@ Bitmap.prototype.fillLatticeRoundedRect = function(x, y, width, height, radius, 
     context.restore();
     this._baseTexture.update();
 };
-Bitmap.prototype.fillAll = function(color) {
-    this.fillRect(0, 0, this.width, this.height, color);
-};
-Bitmap.prototype.gradientFillRect = function(x, y, width, height, color1, color2, vertical) {
+Bitmap.prototype.fillRect = function(x, y, width, height, color) {
     const context = this.context;
-    const x1 = vertical ? x : x + width;
-    const y1 = vertical ? y + height : y;
-    const grad = context.createLinearGradient(x, y, x1, y1);
-    grad.addColorStop(0, color1);
-    grad.addColorStop(1, color2);
     context.save();
-    context.fillStyle = grad;
+    context.fillStyle = color;
     context.fillRect(x, y, width, height);
     context.restore();
     this._baseTexture.update();
 };
-Bitmap.prototype.drawCircle = function(x, y, radius, color) {
-    const context = this.context;
-    context.save();
-    context.fillStyle = color;
-    context.beginPath();
-    context.arc(x, y, radius, 0, Math.PI * 2, false);
-    context.fill();
-    context.restore();
-    this._baseTexture.update();
-};
-Bitmap.prototype.strokeCircle = function(x, y, radius, color, lineWidth) {
+Bitmap.prototype.strokeRect = function(x, y, width, height, color,lineWidth) {
     const context = this.context;
     context.save();
     context.strokeStyle = color;
     context.lineWidth = lineWidth;
-    context.beginPath();
-    context.arc(x, y, radius, 0, Math.PI * 2, false);
-    context.stroke();
+    context.strokeRect(x, y, width, height);
     context.restore();
     this._baseTexture.update();
 };
-
+Bitmap.prototype.drawCircle = function(x, y, radius, color,borderColor,lineWidth) {
+    const context = this.context;
+    context.save();
+    context.fillStyle = color;
+    context.lineWidth = lineWidth||0;
+    context.strokeStyle = borderColor || color;
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2, false);
+    context.fill();
+    if(lineWidth) context.stroke();
+    context.restore();
+    this._baseTexture.update();
+};
 Bitmap.prototype.drawPolygon = function(x, y,side, size, color,borderColor,lineWidth) {
     const context = this.context;
     context.save();
@@ -590,6 +571,48 @@ Bitmap.prototype.drawPolygon = function(x, y,side, size, color,borderColor,lineW
     context.restore();
     this._baseTexture.update();
 };
+Bitmap.prototype.drawStar = function(x, y,side, size,color,borderColor,lineWidth) {
+    const context = this.context;
+    const innerRadius = size / 2;
+    const outerRadius = size;
+    const numPoints = side;
+    const angle = Math.PI / numPoints;
+    context.save();
+    context.beginPath();
+    context.translate(x, y);
+    context.moveTo(0, -outerRadius);
+    for (let i = 0; i < numPoints * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const currentAngle = angle * i;
+        const xCoordinate = radius * Math.sin(currentAngle);
+        const yCoordinate = radius * -Math.cos(currentAngle);
+        context.lineTo(xCoordinate, yCoordinate);
+    }
+    context.closePath();
+    context.fillStyle = color;
+    context.lineWidth = lineWidth||0;
+    context.strokeStyle = borderColor || color;
+    if(lineWidth) context.stroke();
+    context.fill();
+    context.restore();
+    this._baseTexture.update();
+};
+
+Bitmap.prototype.gradientFillRect = function(x, y, width, height, color1, color2, vertical) {
+    const context = this.context;
+    const x1 = vertical ? x : x + width;
+    const y1 = vertical ? y + height : y;
+    const grad = context.createLinearGradient(x, y, x1, y1);
+    grad.addColorStop(0, color1);
+    grad.addColorStop(1, color2);
+    context.save();
+    context.fillStyle = grad;
+    context.fillRect(x, y, width, height);
+    context.restore();
+    this._baseTexture.update();
+};
+
+
 Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
     const context = this.context;
     const alpha = context.globalAlpha;

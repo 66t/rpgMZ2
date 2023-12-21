@@ -14,8 +14,8 @@ Mouse.prototype.initialize = function () {
       this.xy.push([World.cursor.x,World.cursor.y])
       if(i<119) { 
           if(i%10===0) {
-              const b = new Sprite(new Bitmap(36, 36))
-              b.bitmap.strokeRect(9, 9, 18, 18, "#1118", 3)
+              const b = new Sprite(new Bitmap(30, 30))
+              b.bitmap.drawStar(15, 15, 4,15, "#1110", "#1118", 3)
               b.anchor.set(0.5, 0.5)
               this.addChild(b)
           }
@@ -38,7 +38,7 @@ Mouse.prototype.update=function (){
         if(i%10===0) {
             this.children[i/10].x = this.xy[i][0] - this.x
             this.children[i/10].y = this.xy[i][1] - this.y
-            this.children[i/10].rotation = Utils.sinNum(this.xy.length/100, i + this.time)
+            this.children[i/10].rotation = Utils.sinNum(this.xy.length/100, i + this.time*0.02)
             this.children[i/10].scale.x = Utils.sinNum(this.xy.length, i)
             this.children[i/10].scale.y = Utils.sinNum(this.xy.length, i)
         }

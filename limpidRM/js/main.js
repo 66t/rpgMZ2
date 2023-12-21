@@ -1,4 +1,5 @@
 window.onload =  function () {
+    //ConsoleBan.init({})
     DataBase.loadDatabase()
     Config.applyData(LIM.$Identity.load(-1))
     DataBase._globalInfo=LIM.$Identity.load(0)||LIM.$Identity.makeGlobalInfo()

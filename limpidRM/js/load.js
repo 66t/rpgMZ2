@@ -2,6 +2,7 @@
     ModuleManager.module = [
         {src:'libs',
             data:[
+              { src: "ban" },
               { src: "pixi" },
               { src: "crypto-js.min" },
               { src: "pako.min" },
@@ -26,26 +27,30 @@
                         { src: "09-wave" }
                     ]
                 },
-                { src: "02-scene",
+                { src: "03-scene",
                     data:[
                         { src: "01-title" },
                         { src: "02-theater" },
-                        { src: "03-database" }
+                        { src: "03-database" },
                     ]
                 },
                 { src: "02-storage",
                     data:[
                         { src: "01-identity" },
                         { src: "02-database" },
-                        { src: "03-config" }
+                        { src: "03-config" },
+                        { src: "04-dialogue" }
                     ]
                 },
-                { src: "03-window",
+                { src: "04-window",
                     data:[
                         { src: "01-title" },
                         { src: "02-config" },
                         { src: "03-theater" },
-                        { src: "04-database" }
+                        { src: "04-database" },
+                        { src: "05-music" },
+                        { src: "06-photo" },
+                        { src: "07-mes" }
                     ]
                 },
             ]},

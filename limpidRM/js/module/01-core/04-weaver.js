@@ -59,6 +59,7 @@ Cotton.prototype.constructor = Cotton;
 Cotton.prototype.initialize = function (orgin) {
     Sprite.prototype.initialize.call(this)
     this._orgin=orgin
+    this._now=60
     this._bit = {"n":new Bitmap(1,1)}
     this._delay = 0
     this._stop = true
@@ -86,8 +87,14 @@ Cotton.prototype.initWork=function (){}
 Cotton.prototype.initColor=function (){this._color={}}
 Cotton.prototype.stop=function (){this._stop=true}
 Cotton.prototype.start=function (){this._stop=false}
-Cotton.prototype.show=function (){this.alpha=1}
-Cotton.prototype.hide=function (){this.alpha=0}
+Cotton.prototype.show=function (time){
+    if(time) this._showTime=[0,time]
+    else this.alpha=1
+}
+Cotton.prototype.hide=function (time){
+    if(time) this._hideTime=[0,time]
+    else this.alpha=0
+}
 Cotton.prototype.setInput=function (arr){this._input = this._input.concat(arr);}
 
 Cotton.prototype.setColor=function (key,color){this._color[key]=color}
@@ -99,6 +106,15 @@ Cotton.prototype.setWork=function (key,init,cond,done){this.run.set(key,init,con
 Cotton.prototype.exeWork=function (work){this.run.install(work)}
 
 Cotton.prototype.update = function () {
+    if(this._showTime){
+        this.alpha= Utils.sinNum(this._showTime[1],++this._showTime[0])
+        if(this._showTime[0]===this._showTime[1]) this._showTime=null
+    }
+    else if(this._hideTime){
+        this.alpha= 1-Utils.sinNum(this._hideTime[1],++this._hideTime[0])
+        if(this._hideTime[0]===this._hideTime[1]) this._hideTime=null
+    }
+        
     if(this._stop) return
     else if(this.run.active) this.run.update()
     else {
@@ -118,11 +134,13 @@ Cotton.prototype.getWindow=function (key){
     if(this._orgin._window[key]) return this._orgin._window[key]
 }
 
-Cotton.prototype.addText=function (key,data){this.text.addText(key,data)}
+Cotton.prototype.addText=function (key,data){return this.text.addText(key,data)}
 Cotton.prototype.delText=function (key){this.text.delText(key)}
 Cotton.prototype.setText=function (key,txt,bool){this.text.setText(key,txt,bool)}
 Cotton.prototype.setAnch =function (key,anch) {this.text.setAnch(key,anch)}
 Cotton.prototype.setStyle=function (key,data){this.text.setStyle(key,data)}
+Cotton.prototype.isWritIn=function (key,data){return this.text.isIn(key)}
+
 Cotton.prototype.setBlend =function (key,blend) {this.text.setBlend(key,blend)}
 Cotton.prototype.clearText=function (key,data){this.text.clearText()}
 
@@ -138,7 +156,7 @@ Cotton.prototype.evokeAdorn=function (key,bool){
     else  this.adorn.off(key)
 }
 Cotton.prototype.touchAdorn=function (key,bool){this.adorn.setTouch(key,bool)}
-Cotton.prototype.bitAdorn=function (key,bit){this.adorn.setBit(key,bit)}
+Cotton.prototype.bitAdorn=function (key,bit){return this.adorn.setBit(key,bit)}
 Cotton.prototype.moveAdorn=function (key,data){this.adorn.move(key,data)}
 Cotton.prototype.drawAdorn=function (){
     this.adorn.draw()
@@ -211,12 +229,12 @@ Cotton.prototype.setNineTile=function (key,source,w,h,color){
         bit.blt(pic,sw-sw/3,0,sw/3,sw/3,w-sw/3,0,sw/3,sh/3)
         bit.blt(pic,sw-sw/3,sh-sh/3,sw/3,sw/3,w-sw/3,h-sh/3,sw/3,sh/3)
         bit.blt(pic,0,sh-sh/3,sw/3,sw/3,0,h-sh/3,sw/3,sh/3)
-      
         this.addBit(bit,key)
     }
 }
 
 Cotton.prototype.processTouch = function () {
+    if(Touch.wheel.y >= this.threshold) {return;}
     const cancelled=Touch.get("right","rele")
     const pressed =Touch.get("left","key")
     if(cancelled&&this.cancelled()) return
@@ -447,13 +465,19 @@ Adorn.prototype.swap=function (v1,v2){
 Adorn.prototype.off=function (key){if(this.data[key]) this.data[key].touch=false}
 Adorn.prototype.on=function (key) {if(this.data[key]) this.data[key].touch=true }
 Adorn.prototype.setBit=function (key,bit){
+    if(this.data[key].bit===bit) return false
     if(this.data[key]&&this.data[key].bit){
-        let index=this.map[key].indexOf(this.data[key].bit)
-        if(index>-1) this.map[key].splice(index,1)
+        let index=this.map[this.data[key].bit].indexOf(key)
+        if(index>-1) {
+            this.map[this.data[key].bit].splice(index, 1)
+            if(this.map[this.data[key].bit].length===0)
+               delete this.map[this.data[key].bit]
+        }
     }
     this.data[key].bit=bit
     this.connectBit(bit,key)
     this.data[key].refresh=true
+    return true
 }
 Adorn.prototype.connectBit=function (bit,key){
     if(this.map[bit]) this.map[bit].push(key)
@@ -568,13 +592,17 @@ Adorn.prototype._compareChildOrder = function(a, b) {
     else if (a.y !== b.y) {return a.y - b.y;} 
     else {return a.spriteId - b.spriteId;}
 };
-Adorn.prototype.setBlend =function (key,blend) {if(this.sp[key]) this.sp[key].blendMode=blend}
+Adorn.prototype.setBlend =function (key,blend) {
+    if(this.data[key]) 
+        this.data[key].blendMode=blend
+}
 Adorn.prototype.trans =function (key) {
     this.data[key].trans=false
     if(this.data[key]&&this.sp[key]){
         let correct=this.getAnime(key)
         const sp=this.sp[key]
         const data=this.data[key]
+        sp.blendMode=data.blendMode||0
         sp.anchor.set(0.5, 0.5);
         //缩放
         let w= 1
@@ -616,7 +644,7 @@ Adorn.prototype.trans =function (key) {
         sp.ry= Utils.lengthNum(data.y)
         sp.y = sp.ry+sy+(correct.y||0);
         sp.alpha = data.alpha + (correct.alpha||0)/100;
-        sp.rotation = ((data.rota+(correct.rota||0))/180) * Math.PI;
+        sp.rotation = (data.rota+(correct.rota||0))/180 * Math.PI;
         sp.scale.x *=data.ox + (correct.ox||0)/100
         sp.scale.y *=data.oy + (correct.oy||0)/100
         sp.skew.x =(data.sx + (correct.sx||0))/180 * Math.PI;
@@ -669,15 +697,17 @@ Writ.prototype.addText=function (key,data){
    this._sp[key].anchor._x=0.5
    this._sp[key].anchor._y=0.5
    this.drawText()
+   return this._sp[key].width
 }
 Writ.prototype.setBlend =function (key,blend) {
     if(this._sp[key]) 
         this._sp[key].blendMode=blend
 }
-
 Writ.prototype.delText=function (key){
-    delete  this._text[key]
-    this.drawText()
+    if(this._text[key]) {
+        delete this._text[key]
+        this.drawText()
+    }
 }
 Writ.prototype.setAnch =function (key,anch) {
     if(this._text[key])
@@ -687,11 +717,14 @@ Writ.prototype.setText=function (key,txt,bool){
     if(this._text[key]&&txt){
         this._text[key].txt=txt
         if(bool) {
+            this._sp[key].text=""
             this._sp[key].inTxt = ""
             this._sp[key].txtIn = true
         }
         else {
             this._sp[key].text=txt
+            this._sp[key].inTxt = txt
+            this._sp[key].txtIn = true
         }
     }
 }
@@ -703,22 +736,27 @@ Writ.prototype.drawText=function (){
             delete this._sp[index]
             delete this._style[index]
         }
-    }
+     }
 }
 Writ.prototype.getStyle=function (data){
     return {
+        fontStyle:data.fontStyle?"italic":"normal",
+        letterSpacing: data.letterSpacing||1,
         fontFamily:data.fontFamily||"font",
-        lineJoin:data.lineJoin|| "round",
-        padding:data.padding||20,
+        fontWeight:data.fontWeight||100,
+        fontSize:data.fontSize||24,
+        lineJoin:data.lineJoin||"round",
         fill:data.fill||"#000",
         fillGradientType:data.fillGradientType||0,
-        fontSize:data.fontSize||24,
-        letterSpacing: data.letterSpacing||1,
-        fontWeight:data.fontWeight||100,
-        fontStyle:data.fontStyle||"normal",
         stroke: data.stroke||"#fff",
-        strokeThickness: data.strokeThickness||7,
-        interval:Math.round((data.interval||5))
+        strokeThickness: data.strokeThickness===undefined?7:data.strokeThickness,
+        interval:Math.round((data.interval===undefined?5:data.interval)),
+        
+        dropShadow: data.drop||false,
+        dropShadowAngle: (data.dropAngle/180 * Math.PI)||0,
+        dropShadowBlur: data.dropBlur||0,
+        dropShadowColor: data.dropColor||"#000",
+        dropShadowDistance: data.dropDistance||0,
     }
 }
 Writ.prototype.setStyle=function (key,data){
@@ -732,11 +770,11 @@ Writ.prototype.clearText=function (){
     this._text={}
     this.drawText()
 }
+Writ.prototype.isIn=function (key){return this._sp[key].txtIn}
 Writ.prototype.update=function (){
     for(let key in this._text){
-        
         if(this._sp[key].txtIn){
-            if(!Config.textspeed){
+            if(!Config.textspeed||!this._style[key].interval){
                 this._sp[key].inTxt=this._text[key].txt
                 this._sp[key].text=this._sp[key].inTxt
                 this._sp[key].txtIn=false
@@ -749,7 +787,6 @@ Writ.prototype.update=function (){
                 else {this._sp[key].txtIn=false}
             }
         }
-        
         let data=this._text[key]
         if(data.anch&&this._orgin.adorn.sp[data.anch]){
             let sp=this._orgin.adorn.sp[data.anch]
@@ -790,8 +827,8 @@ Writ.prototype.update=function (){
         this._sp[key].x+= data.x||0
         this._sp[key].y+= data.y||0
         this._sp[key].rotation= (data.rota||0) /180 * Math.PI;
-        this._sp[key].scale.x= data.ox||1
-        this._sp[key].scale.y= data.oy||1
+        this._sp[key].scale.x= data.ox===undefined?1:data.ox
+        this._sp[key].scale.y= data.oy===undefined?1:data.oy
         this._sp[key].skew.x= (data.sx|0)/180 * Math.PI
         this._sp[key].skew.y= (data.sy||0)/180 * Math.PI
     }
@@ -823,9 +860,10 @@ Handler.prototype.update = function(x, y, cancelled, pressed, item) {
    if (this._activa) {
         let itemWidth = item.width*item.scale.x;
         let itemHeight = item.height*item.scale.y;
+       
         let itemX = item.getX()
         let itemY = item.getY()
-        let alphaPixel = this._alpha||item.bitmap.getAlphaPixel(x - (itemX - itemWidth * 0.5), y - (itemY - itemHeight * 0.5))
+        let alphaPixel = this._alpha||item.bitmap.getAlphaPixel((x-(itemX-itemWidth*0.5))/item.scale.x,(y-(itemY - itemHeight*0.5))/item.scale.y)
         this._touch = [
             x - (itemX - itemWidth * 0.5),
             y - (itemY - itemHeight * 0.5),

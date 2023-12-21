@@ -19,11 +19,13 @@ Conductor.fadeOut=[0,0]
 
 //全局淡入淡出
 Conductor.hide =function (time){
+    if(Conductor.trajeBuffer[11]) return
     this.fadeOut = [performance.now() + time, performance.now()]
     this.fadeIn[0] = 0;
     this.fadeIn[1] = 0;
 }
 Conductor.acti =function (time){
+    if(Conductor.trajeBuffer[11]) return
     this.fadeIn = [performance.now() + time, performance.now()]
     this.fadeOut[0] = 0;
     this.fadeOut[1] = 0;
@@ -64,35 +66,53 @@ Conductor.setMastertVol = function(val) {
     Tone.Master.volume.value = 12 * Math.log10(val);
 };
 //播放
-Conductor.play = function (id){
+Conductor.play = function (id,traje=100){
     let data = LIM.$audio[id];
-    if (data) new Near(data)
+    if (data) new Near(data,traje)
+}
+//转跳
+Conductor.rope = function (traje,time){
+    if(Conductor.trajeBuffer[traje]) {
+        let audio = Conductor.trajeBuffer[traje][Conductor.trajeIndex[traje]]
+        if (audio) audio.rope(time)
+    }
 }
 //暂停
-Conductor.pause = function (traje){
+Conductor.pause = function (traje,bool){
     if(Conductor.trajeBuffer[traje]) {
-        let audio = Conductor.trajeBuffer[traje][Conductor.trajeIndex]
-        if (audio) audio.pause()
+        let audio = Conductor.trajeBuffer[traje][Conductor.trajeIndex[traje]]
+        if (audio) audio.pause(bool)
     }
 }
 Conductor.stop = function (traje){
     if(Conductor.trajeBuffer[traje]) {
-        let audio = Conductor.trajeBuffer[traje][Conductor.trajeIndex]
+        let audio = Conductor.trajeBuffer[traje][Conductor.trajeIndex[traje]]
         if (audio) audio.stop()
     }
 }
-
+Conductor.clear=function (traje){
+    if(Conductor.trajeBuffer[traje]) {
+        for (let i = 0; i < Conductor.trajeBuffer[traje].length; i++) {
+            const near = Conductor.trajeBuffer[traje][i]
+            near.audio.dispose()
+            const index = Conductor.buffer.indexOf(near)
+            if (index > -1) Conductor.buffer.splice(index, 1)
+            delete Conductor.trajeBuffer[traje][i]
+        }
+        Conductor.trajeBuffer[traje] = null
+    }
+}
 //实例
 function Near() {
     this.initialize.apply(this, arguments);
 }
 Near.prototype = Object.create(Near.prototype);
 Near.prototype.constructor = Near;
-Near.prototype.initialize = function (data) {
+Near.prototype.initialize = function (data,traje) {
     this.audio= new Tone.Player().toDestination()
     this.data=data
     this.mark=0
-    this.traje=data.traje
+    this.traje=traje
     this.setBuffer()
     this.setVol(this.data.volume)
     if (data.rate) this.setRate(data.rate);
@@ -113,21 +133,35 @@ Near.prototype.globalBgm =function (name){
 }
     
 Near.prototype.start = function() {
-    this.start_time=(this.data.time*this.audio.playbackRate)%this.audio.buffer.duration
+    this.duration=this.audio.buffer.duration
+    this.realDuration=this.audio.buffer.duration/this.audio.playbackRate
+    this.start_time=this.data.time
     this.play() 
     this.setLoop(this.data.loop)
 }
+
+Near.prototype.rope=function(time) {
+    this.start_time=time%this.duration
+    this.realStart_time=this.start_time/this.audio.playbackRate
+    this.play_time=performance.now()
+    this.audio.start("+0",this.start_time);
+    this.mark=1
+}
 Near.prototype.play = function() {
-    this.start_time=(this.start_time*this.audio.playbackRate)%this.audio.buffer.duration
+    this.start_time= this.start_time%this.duration
+    this.realStart_time=this.start_time/this.audio.playbackRate
     this.play_time=performance.now()
     this.audio.start("+0",this.start_time);
     this.mark=1
     this.startFadeIn(this.data.fade[0])
 }
-Near.prototype.pause=function (){
+Near.prototype.pause=function (bool){
     if(this.mark===1){
-      this.startFadeOut(this.data.fade[1])
-      this.mark=2
+      if(bool){this.FadeOutEnd()} 
+      else {
+          this.startFadeOut(this.data.fade[1])
+          this.mark = 2
+      }
     }
     else if(this.fadeOut) this.corrFadeIn()
     else {
@@ -137,12 +171,21 @@ Near.prototype.pause=function (){
 Near.prototype.stop=function (){
     if(this.mark===1){
         this.startFadeOut(this.data.fade[1])
-        if(Conductor.trajeBuffer[this.traje]&&Conductor.trajeBuffer[this.traje][Conductor.trajeIndex]===this) {
-            Conductor.trajeBuffer[this.traje].splice(Conductor.trajeIndex,1)
-            if(Conductor.trajeBuffer[this.traje][--Conductor.trajeIndex])
-                Conductor.trajeBuffer[this.traje][Conductor.trajeIndex].pause()
+        if(Conductor.trajeBuffer[this.traje]&&Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]]===this) {
+            Conductor.trajeBuffer[this.traje].splice(Conductor.trajeIndex[this.traje],1)
+            Conductor.trajeIndex[this.traje]=Math.max(0,Conductor.trajeIndex[this.traje]-1)
+            if(Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]])
+                Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]].pause()
         }
         this.mark=4
+    }
+    else if(this.mark===0||this.mark===2) {
+        if(Conductor.trajeBuffer[this.traje]&&Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]]===this) {
+            Conductor.trajeBuffer[this.traje].splice(Conductor.trajeIndex[this.traje],1)
+            Conductor.trajeIndex[this.traje]=Math.max(0,Conductor.trajeIndex[this.traje]-1)
+        }
+        this.mark=4
+        this.FadeOutEnd()
     }
 }
 Near.prototype.update=function (time){
@@ -158,8 +201,7 @@ Near.prototype.update=function (time){
 Near.prototype.startFadeIn = function (time){
     if(this.fadeOut){
         this.fadeOut = 0
-        this.start_time += (performance.now() - this.play_time) / 1000
-        if (this.mark  === 3) Conductor.restBuffer[this.traje] = this
+        this.start_time += (performance.now() - this.play_time) / 1000 * this.audio.playbackRate
     }
     else {
         this.fadeInTime = performance.now()
@@ -218,8 +260,7 @@ Near.prototype.FadeOutEnd=function (){
     this.audio.stop()
     if(this.mark===4){this.dispose()}
     else {
-        this.start_time += (performance.now() - this.play_time) / 1000   //播放的时间
-        if (this.mark  === 3) Conductor.restBuffer[this.traje] = this
+        this.start_time += (performance.now() - this.play_time)/1000*this.audio.playbackRate   //播放的时间
         this.mark = 0
     }
 }
@@ -227,34 +268,35 @@ Near.prototype.FadeOutEnd=function (){
 
 Near.prototype.dispose=function (){
     this.audio.dispose()
-    for(let i=0;i<Conductor.buffer.length;i++){
-        if(Conductor.buffer[i]===this){
-            Conductor.buffer.splice(i,1)
-            delete this
-            return
-        }
+    const i=Conductor.buffer.indexOf(this)
+    if(i>-1)  Conductor.buffer.splice(i,1)
+    
+    if(Conductor.trajeBuffer[this.traje]) {
+        const i2 = Conductor.trajeBuffer[this.traje].indexOf(this)
+        if (i2 > -1) Conductor.trajeBuffer[this.traje].splice(i2, 1)
     }
+    delete this
 }
 
 
 Near.prototype.setBuffer=function () {
     if(this.traje) {
         //如果正在播放
-        if(Conductor.trajeBuffer[this.traje]) {
-            Conductor.trajeBuffer[this.traje][Conductor.trajeIndex].pause()
-            Conductor.trajeBuffer[this.traje].splice(++Conductor.trajeIndex,0,this)
+        if(Conductor.trajeBuffer[this.traje]&&Conductor.trajeBuffer[this.traje].length) {
+            if(Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]].mark===1) Conductor.trajeBuffer[this.traje][Conductor.trajeIndex[this.traje]].pause()
+            Conductor.trajeBuffer[this.traje].splice(++Conductor.trajeIndex[this.traje],0,this)
         }
         else {
             Conductor.trajeBuffer[this.traje]=[this]
-            Conductor.trajeIndex=0
+            Conductor.trajeIndex[this.traje]=0
         }
     }
     Conductor.buffer.push(this)
 }
 Near.prototype.setVol = function(val) {
-    const trajeVal=Conductor.trajeVolume[this.traje]!==undefined?Conductor.trajeVolume[this.traje]:1
+    const trajeVal=Conductor.trajeVolume[this.traje%10]!==undefined?Conductor.trajeVolume[this.traje%10]:1
     this.audio.volume.value = 12 * Math.log10(val * Conductor.volVolume * trajeVal);
-    this.audio.mute=val * Conductor.volVolume * trajeVal===0
+    this.audio.mute=(val * Conductor.volVolume * trajeVal)===0
     this.vol=false
 };
 Near.prototype.setRate = function(val) {this.audio.playbackRate = val;};
