@@ -26,7 +26,7 @@ LIMScene_database_window.prototype.initColor=function (){
     this._color={}
     this.setColor("back0","#f0f0f0")
     this.setColor("back1","#afafaf")
-    this.setColor("window","#fff8")
+    this.setColor("window","#fffb")
     this.setColor("select","#4444")
 }
 LIMScene_database_window.prototype.initAdorn=function (){
@@ -47,11 +47,15 @@ LIMScene_database_window.prototype.initAdorn=function (){
 }
 LIMScene_database_window.prototype.initWork=function (){
     this.setWork("开始","initStart","condStart","endStart")
-    this.setWork("打开音乐视窗","initMusic","condMusic","endMusic")
-    this.setWork("退出音乐视窗","","condBackMusic","endBackMusic")
+    this.setWork("打开音乐视窗","initMusic","condView","endMusic")
+    this.setWork("退出音乐视窗","","condBackView","endBackView")
     
-    this.setWork("打开图片视窗","initPhoto","condMusic","endPhoto")
-    this.setWork("退出图片视窗","","condBackMusic","endBackPhoto")
+    this.setWork("打开图片视窗","initPhoto","condView","endPhoto")
+    this.setWork("退出图片视窗","","condBackView","endBackView")
+
+    this.setWork("打开通讯录视窗","initConta","condView","endConta")
+    this.setWork("退出通讯录视窗","","condBackView","endBackView")
+    
     this.setWork("退出","initExit","condExit","endExit")
 }
 LIMScene_database_window.prototype.execute=function (){
@@ -115,11 +119,21 @@ LIMScene_database_window.prototype.endStart=function (){
 }
 
 
+LIMScene_database_window.prototype.condBackView=function (){
+    const time=1-Utils.sinNum(80,this.run.time)
+    const arr=  this.getNote("列表")
+    this.moveAdorn("win1",{y:(time*150)-10})
+    this.moveAdorn("round",{alpha:0.2-time,y:(time*150)-24})
+    for(let i=0;i<arr.length;i++) this.moveAdorn("op"+(i+1),{y:(time*150)-28})
+    if(this.run.time>=80) return true
+}
+LIMScene_database_window.prototype.endBackView=function (){this.closeView()}
+
 LIMScene_database_window.prototype.initMusic=function (){
     Conductor.pause(1)
     this.addExpel("OP")
 }
-LIMScene_database_window.prototype.condMusic=function (){
+LIMScene_database_window.prototype.condView=function (){
     const time=Utils.sinNum(80,this.run.time)
     const arr=  this.getNote("列表")
     this.moveAdorn("win1",{y:(time*150)-10})
@@ -129,26 +143,19 @@ LIMScene_database_window.prototype.condMusic=function (){
 }
 LIMScene_database_window.prototype.endMusic=function (){this.openMusic()}
 
-
-LIMScene_database_window.prototype.condBackMusic=function (){
-    const time=1-Utils.sinNum(80,this.run.time)
-    const arr=  this.getNote("列表")
-    this.moveAdorn("win1",{y:(time*150)-10})
-    this.moveAdorn("round",{alpha:0.2-time,y:(time*150)-24})
-    for(let i=0;i<arr.length;i++) this.moveAdorn("op"+(i+1),{y:(time*150)-28})
-    if(this.run.time>=80) return true
-}
-LIMScene_database_window.prototype.endBackMusic=function (){this.closeMusic()}
-
 LIMScene_database_window.prototype.initPhoto=function (){
     this.addExpel("OP")
 }
 LIMScene_database_window.prototype.endPhoto=function (){this.openPhoto()}
 
+LIMScene_database_window.prototype.initConta=function (){
+    this.addExpel("OP")
+}
+LIMScene_database_window.prototype.endConta=function (){this.openConta()}
 
 
 LIMScene_database_window.prototype.initExit=function (){
-    this.setAdorn("backe","backe","",{},"100%","100%","0","0",0,5,0,0)
+    this.setAdorn("back2","back2","",{},"100%","100%","0","0",0,5,0,0)
     this.drawAdorn()
 }
 LIMScene_database_window.prototype.condExit=function (){
@@ -159,7 +166,7 @@ LIMScene_database_window.prototype.condExit=function (){
     for(let i=0;i<arr.length;i++) this.moveAdorn("op"+(i+1),{y:(time*150)-28})
     this.moveAdorn("win2",{x:time*World.canvasWidth*0.3})
     this.moveAdorn("back",{alpha:1-time})
-    this.moveAdorn("backe",{alpha:time})
+    this.moveAdorn("back2",{alpha:time})
     if(this.run.time===80) Scene.snapForBackground(0)
     if(Scene.snapshot[0]) return true
 }
@@ -195,7 +202,7 @@ LIMScene_database_window.prototype.OP_K=function(data){
                 this.exeWork("打开图片视窗")
                 break
             case 3:
-                Conductor.pause(1)
+                this.exeWork("打开通讯录视窗")
                 break
             case 4:
                 Conductor.stop(1)
@@ -266,13 +273,7 @@ LIMScene_database_window.prototype.openMusic=function (){
     const mes= this.getWindow("mes")
     mes.start()
     mes.show(50)
-    
     win.exeWork("开始")
-}
-LIMScene_database_window.prototype.closeMusic=function (){
-    this.delExpel("OP")
-    this.moveAdorn("round",{alpha:0.2})
-    this._page=1
 }
 LIMScene_database_window.prototype.openPhoto=function (){
     this._page=0
@@ -280,6 +281,18 @@ LIMScene_database_window.prototype.openPhoto=function (){
     win.start()
     win.show()
     win.exeWork("开始")
+}
+LIMScene_database_window.prototype.openConta=function (){
+    this._page=0
+    const win= this.getWindow("t4")
+    win.start()
+    win.show()
+    win.exeWork("开始")
+}
+LIMScene_database_window.prototype.closeView=function (){
+    this.delExpel("OP")
+    this.moveAdorn("round",{alpha:0.2})
+    this._page=1
 }
 
 /////////////////////////////////////////////////////////////
@@ -293,7 +306,7 @@ LIMScene_database_window.prototype.drawBack=function (){
 LIMScene_database_window.prototype.drawBack2=function (){
     const back = new Bitmap(World.canvasWidth,World.canvasHeight)
     back.fillStripedRoundedRect(0,0,World.canvasWidth,World.canvasHeight,0,5,this.getColor("back0"),this.getColor("back1"))
-    this.addBit(back,"backe")
+    this.addBit(back,"back2")
 }
 LIMScene_database_window.prototype.drawRound=function () {
     const b = new Bitmap(64,64)

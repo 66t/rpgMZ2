@@ -28,6 +28,10 @@ Scene.updateMain=function (){
     this.updateScene()
     this.updateOperate()
     LIM.$Dialogue.update()
+    if(Touch.wheel.update) {
+        Touch.wheel.y = 0
+        Touch.wheel.update=false
+    }
 }
 Scene.update=function (deltaTime){
     try{
@@ -126,10 +130,10 @@ Scene.clearStack=function (){
 }
 
 Scene.snapForBackground = function(index) {
-    LIM.mouse.alpha=0
+    LIM.Mouse.alpha=0
     if (this.snapshot[index]) this.snapshot[index].destroy();
     this.snapshot[index] = Bitmap.snap(this.scene);
-    LIM.mouse.alpha=1
+    LIM.Mouse.alpha=1
 };
 Scene.destroyForBackground=function (index){
     if (this.snapshot[index]) this.snapshot[index].destroy();
@@ -147,7 +151,7 @@ Stage.prototype.initialize = function() {
     this.sortableChildren = true
     this.back=new Sprite(Scene.snapshot[0]||new Bitmap(1,1))
     this.addChild(this.back)
-    this.addChild(LIM.mouse)
+    this.addChild(LIM.Mouse)
 };
 Stage.prototype.destroy = function() {
     PIXI.Container.prototype.destroy.call(this,{children:true,texture:true})

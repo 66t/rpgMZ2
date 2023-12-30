@@ -8,8 +8,8 @@ Keyboard.repeatTime = 30;
 Keyboard.install = function() {
     const data = this.controlMapper;
     data.tab = [9];
-    data.start = [81];
-    data.home = [87];
+    data.start = [65];
+    data.home = [83];
     data.select = [33];
     data.back = [34];
     data.a = [13, 32, 90];
@@ -20,6 +20,8 @@ Keyboard.install = function() {
     data.down = [40, 98];
     data.left = [37, 100];
     data.right = [39, 102];
+    data.pageup = [33, 81];
+    data.pagedown = [34, 87];
     document.addEventListener('keydown', this.onKeyDown.bind(this));
     document.addEventListener('keyup', this.onKeyUp.bind(this));
     window.addEventListener('blur', this.onBlur.bind(this));

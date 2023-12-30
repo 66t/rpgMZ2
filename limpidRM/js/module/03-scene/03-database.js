@@ -24,13 +24,17 @@ LIMScene_database.prototype.install = function (){
 
     this._window["t3"]=new LIMScene_photo_window(this)
     this._window["t3"].hide()
+
+    this._window["t4"]=new LIMScene_contacts_window(this)
+    this._window["t4"].hide()
     
     const pos={
        w: World.canvasWidth*0.6-40,
-       h: World.canvasHeight-320,
-       x:-20,y:160,adso:9
+       h: World.canvasHeight-340,
+       x:-20,y:160,adso:9,
     }
-    this._window["mes"]=new LIMScene_mes_window(this,5,pos,false)
+    const scroll={w:7,h:15,x:4,y:0,color1:"#0008",color2:"#fff8",adso:9}
+    this._window["mes"]=new LIMScene_mes_window(this,5,pos,scroll)
     this._window["mes"].hide()
 }
 LIMScene_database.prototype.execute=function (){

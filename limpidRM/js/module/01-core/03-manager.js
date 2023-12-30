@@ -5,6 +5,14 @@ ImageManager._emptyBitmap = new Bitmap(1, 1);
 ImageManager.loadBitmap = function(folder, filename) {
     if (filename) {
         const url = folder + Utils.encodeURI(filename) + ".png";
+        if(folder==="img/cg/"){
+            const image=DataBase._globalInfo.image
+            if(image.indexOf(filename)===-1) {
+                image.push(filename)
+                LIM.$Identity.save(0)
+            }
+        }
+      
         return this.loadBitmapFromUrl(url);
     } else {
         return this._emptyBitmap;

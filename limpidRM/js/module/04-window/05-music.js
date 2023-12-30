@@ -18,7 +18,7 @@ LIMScene_music_window.prototype.initImage = function() {
 }
 LIMScene_music_window.prototype.initColor=function (){
     this._color={}
-    this.setColor("window","#fff8")
+    this.setColor("window","#fffb")
     this.setColor("select","#4444")
     this.setColor("val1","#39f")
     this.setColor("val2","#222")
@@ -33,7 +33,7 @@ LIMScene_music_window.prototype.initAdorn=function () {
     
     const bgm=new Bitmap(World.canvasWidth*0.4-36,36)
     bgm.fillAll(this.getColor("select"))
-    this.addBit(bgm,"bgmlist")
+    this.addBit(bgm,"list")
 
     const data=new Bitmap(World.canvasWidth,World.canvasHeight)
     this.addBit(data,"bgmdata")
@@ -61,6 +61,7 @@ LIMScene_music_window.prototype.execute=function (){
     else {
         LIM.Cache["音乐标签"]=1
         LIM.Cache["音乐顶序"]=0
+        LIM.Cache["原音量"]=Config.bgmVolume
         LIM.Cache["音乐音量"]=100
     }
     this.drawToolAdorn()
@@ -193,9 +194,12 @@ LIMScene_music_window.prototype.BGM_T=function(data){
 LIMScene_music_window.prototype.BGM_K=function(data){
     if(this.getNote("bgm_index")===data.index) {
         const name=this.getBgmName()
-        if(name!=="?") {
+        if(name[0]!=="?") {
             if (this.getNote("播放")) this.playMusic()
             else this.exeWork("播放")
+        }
+        else {
+            Conductor.play("serect6",0,true) 
         }
     }
 }
@@ -207,12 +211,14 @@ LIMScene_music_window.prototype.UP_K=function (){
     if(LIM.Cache["音乐顶序"]) {
         LIM.Cache["音乐顶序"]--
         this.drawPage()
+        Conductor.play("cursor",0)
     }
 }
 LIMScene_music_window.prototype.DOWN_K=function (){
     if(LIM.Cache["音乐顶序"]+10<this.getNote("bgm列表").length) {
         LIM.Cache["音乐顶序"]++
         this.drawPage()
+        Conductor.play("cursor",0)
     }
 }
 
@@ -260,6 +266,7 @@ LIMScene_music_window.prototype.Back_1=function (){
     this.exeWork("关闭")
 
     const mes= this.getWindow("mes")
+    mes.removeTxt()
     mes.stop()
     mes.hide(50)
     
@@ -310,15 +317,19 @@ LIMScene_music_window.prototype.Longkey_down_1=function (){
 /////////////////////////////////////////////////////////////
 //滚轮
 /////////////////////////////////////////////////////////////
-LIMScene_music_window.prototype.WheelUp_1=function (){this.Longkey_up_1()}
-LIMScene_music_window.prototype.WheelDown_1=function (){this.Longkey_down_1()}
+LIMScene_music_window.prototype.WheelUp_1=function (){
+    if(!this.getWindow("mes").getNote("可滚动"))
+    this.Longkey_up_1()}
+LIMScene_music_window.prototype.WheelDown_1=function (){
+    if(!this.getWindow("mes").getNote("可滚动"))
+    this.Longkey_down_1()}
 /////////////////////////////////////////////////////////////
 //绘制
 /////////////////////////////////////////////////////////////
 LIMScene_music_window.prototype.drawBgmAdorn=function (){
     for(let i=0;i<10;i++){
         const name ="bgm"+(1+i)
-        this.setAdorn(name,"bgmlist","BGM",{index:1+i},0,0,18,28,0,7,0,0)
+        this.setAdorn(name,"list","BGM",{index:1+i},0,0,18,28,0,7,0,0)
         this.addText(name, {anch: name,fontSize:22,fontFamily:"font",txt:"",adso:5})
         this.setStyle(name,{ox:0,alpha:0})
         this.touchAdorn(name,true)
@@ -362,9 +373,9 @@ LIMScene_music_window.prototype.drawToolAdorn=function(){
     this.setAdorn("wane2","wane","",{},"100%","100%",185,-44,0,2,0,0)
     
     this.setAdorn("txt1","txt","",{},"100%","100%",-280,-55,0,2,0,0)
-    this.addText("txt1",{anch: "txt1",fontSize:15,fontFamily:"font",txt:"",adso:4,x:10,alpha:0})
+    this.addText("txt1",{anch: "txt1",fontSize:15,fontFamily:"jua",txt:"",adso:4,x:10,alpha:0})
     this.setAdorn("txt2","txt","",{},"100%","100%",-80,-55,0,2,0,0)
-    this.addText("txt2", {anch: "txt2",fontSize:15,fontFamily:"font",txt:"",adso:6,x:-10,alpha:0})
+    this.addText("txt2", {anch: "txt2",fontSize:15,fontFamily:"jua",txt:"",adso:6,x:-10,alpha:0})
     this.setAdorn("txt3","txt","",{},"60w","100%",0,130,0,9,0,0)
     this.addText("txt3", {anch: "txt3",fontSize:25,fontFamily:"font",txt:"",adso:5,alpha:0})
     this.setVol(Config.bgmVolume)

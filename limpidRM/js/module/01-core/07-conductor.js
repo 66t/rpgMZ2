@@ -66,8 +66,14 @@ Conductor.setMastertVol = function(val) {
     Tone.Master.volume.value = 12 * Math.log10(val);
 };
 //播放
-Conductor.play = function (id,traje=100){
+Conductor.play = function (id,traje=100,bool){
     let data = LIM.$audio[id];
+    
+    if(bool){
+        const name=data.type+"/"+data.name
+        for(let item of Conductor.buffer){if(name===item.data.type+"/"+item.data.name) return}
+    }
+    
     if (data) new Near(data,traje)
 }
 //转跳
@@ -122,14 +128,16 @@ Near.prototype.initialize = function (data,traje) {
     if (data.pan) this.setPan(data.pan);
     if (data.pitch)this.setPitch(data.pitch);
     if (data.chorus)this.setChorus(data.chorus);
-    ///////
+    ///////播放了bgm
     if(data.type==="bgm")
         this.globalBgm(data.name)
 }
 Near.prototype.globalBgm =function (name){
     const bgm=DataBase._globalInfo.bgm
-    if(bgm.indexOf(name)===-1) bgm.push(name)
-    LIM.$Identity.save(0)
+    if(bgm.indexOf(name)===-1) {
+        bgm.push(name)
+        LIM.$Identity.save(0)
+    }
 }
     
 Near.prototype.start = function() {

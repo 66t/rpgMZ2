@@ -98,7 +98,9 @@ World.initFps=function () {
 }
 World.initFont=function () {
     FontManager.load("font","font.ttf")
-    FontManager.load("dot","dot.ttf")
+    FontManager.load("write","write.ttf")
+    FontManager.load("jua","jua.ttf")
+    
 }
 
 World.startGame=function (){

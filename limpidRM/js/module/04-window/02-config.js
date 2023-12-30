@@ -14,7 +14,7 @@ LIMScene_config_window.prototype.initImage = function() {
 }
 LIMScene_config_window.prototype.initColor=function (){
     this._color={}
-    this.setColor("window","#fff8")
+    this.setColor("window","#fffb")
     this.setColor("select","#4444")
 }
 LIMScene_config_window.prototype.initAdorn=function (){

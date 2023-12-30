@@ -50,11 +50,11 @@ Config.applyData = function(config) {
     if(config) {
         this.language = config.language
         this.window = config.window
-        this.textspeed = config.textspeed.clamp(0,2)
-        this.opmemory = config.opmemory.clamp(0,1)
-        this.Volume = config.volume.clamp(0,1)
-        this.seVolume = config.seVolume.clamp(0,1)
-        this.bgmVolume = config.bgmVolume.clamp(0,1)
+        this.textspeed = config.textspeed?config.textspeed.clamp(0,2):0
+        this.opmemory = config.opmemory?config.opmemory.clamp(0,1):0
+        this.Volume = config.volume?config.volume.clamp(0,1):0
+        this.seVolume = config.seVolume?config.seVolume.clamp(0,1):0
+        this.bgmVolume = config.bgmVolume?config.bgmVolume.clamp(0,1):0
     }
     else {
         LIM.$Identity.save(-1)

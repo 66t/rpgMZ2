@@ -6,6 +6,7 @@ DataBase.dataFile=[
     {name:"audio",src:"Audio"},
     {name:"text",src:"Text"},
     {name:"actors",src:"Actors"},
+    {name:"image",src:"Image"},
     {name:"article",src:DataBase.inkPath+"/0_0"}
 ]
 DataBase._globalInfo = null
@@ -26,6 +27,14 @@ DataBase.loadDataFile = function(name, src) {
     xhr.onerror = () => this.onXhrError(name, src, url);
     xhr.send();
 };
+
+
+DataBase.addActors=function (name){
+    if(this._globalInfo.actors.indexOf(name)===-1)
+        this._globalInfo.actors.push(name)
+    LIM.$Identity.save(0)
+}
+
 DataBase.loadInk = function(scene,ink) {
     LIM["$"+this.inkPath]=null
     this.inkPointer=scene+"_"+ink

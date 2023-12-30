@@ -139,7 +139,7 @@ Cotton.prototype.delText=function (key){this.text.delText(key)}
 Cotton.prototype.setText=function (key,txt,bool){this.text.setText(key,txt,bool)}
 Cotton.prototype.setAnch =function (key,anch) {this.text.setAnch(key,anch)}
 Cotton.prototype.setStyle=function (key,data){this.text.setStyle(key,data)}
-Cotton.prototype.isWritIn=function (key,data){return this.text.isIn(key)}
+Cotton.prototype.isWritIn=function (key){return this.text.isIn(key)}
 
 Cotton.prototype.setBlend =function (key,blend) {this.text.setBlend(key,blend)}
 Cotton.prototype.clearText=function (key,data){this.text.clearText()}
@@ -171,6 +171,8 @@ Cotton.prototype.stopAnime =function (sp,key) {
 
 Cotton.prototype.spHandler=function (key,handler){this.adorn.spHandler(key,handler)}
 Cotton.prototype.delHandler=function (key){this.adorn.delHandler(key)}
+Cotton.prototype.hideHandler=function (){this.adorn.hideHandler()}
+
 Cotton.prototype.getSp=function (key){
     return this.adorn.sp[key]
 }
@@ -249,7 +251,7 @@ Cotton.prototype.processTouch = function () {
             if(!this._expel.has(handler)) {
                 if(bound.expel) bound.restore()
                 const res = bound.update(x, y, cancelled, pressed, item)
-                const pos = [res.touch[0], res.touch[1], res.touch[4] - res.touch[2], res.touch[5] - res.touch[3]]
+                const pos = [res.touch[0], res.touch[1], res.touch[4] - res.touch[2], res.touch[5] - res.touch[3],Touch.cursor.x,Touch.cursor.y]
                 const bool = res.data
                 let region = 0
                 if (bool[0] === bool[1]) {
@@ -295,12 +297,12 @@ Cotton.prototype.processTouch = function () {
 }
 Cotton.prototype.processWheel = function() {
     if (this[`WheelDown_${this._page}`]&&Touch.wheel.y >= this.threshold) {
-        Touch.wheel.y=0
+        Touch.wheel.update=true
         this[`WheelDown_${this._page}`]()
         return true
     }
     if (this[`WheelUp_${this._page}`]&&Touch.wheel.y <= -this.threshold) {
-        Touch.wheel.y=0
+        Touch.wheel.update=true
         this[`WheelUp_${this._page}`]()
         return true
     }
@@ -674,6 +676,9 @@ Adorn.prototype.spHandler=function (key,handler){
 Adorn.prototype.delHandler=function (key){
     if(this.handler[key]) delete this.handler[key]
 }
+Adorn.prototype.hideHandler=function (){
+    for(let item of this.handler) item.hide()
+}
 /////////////////////////////////////////////
 function Writ() {
     this.initialize.apply(this, arguments);
@@ -693,6 +698,7 @@ Writ.prototype.addText=function (key,data){
    this._text[key]=data
    this._style[key]=this.getStyle(data)
    this._sp[key]=new PIXI.Text(data.txt,this._style[key])
+   
    this._sp[key].blendMode=0
    this._sp[key].anchor._x=0.5
    this._sp[key].anchor._y=0.5
@@ -748,10 +754,10 @@ Writ.prototype.getStyle=function (data){
         lineJoin:data.lineJoin||"round",
         fill:data.fill||"#000",
         fillGradientType:data.fillGradientType||0,
-        stroke: data.stroke||"#fff",
-        strokeThickness: data.strokeThickness===undefined?7:data.strokeThickness,
+        stroke: data.stroke||"#fff0",
+        strokeThickness: data.strokeThickness===undefined?6:data.strokeThickness,
         interval:Math.round((data.interval===undefined?5:data.interval)),
-        
+        title:data.title,
         dropShadow: data.drop||false,
         dropShadowAngle: (data.dropAngle/180 * Math.PI)||0,
         dropShadowBlur: data.dropBlur||0,
@@ -772,6 +778,7 @@ Writ.prototype.clearText=function (){
 }
 Writ.prototype.isIn=function (key){return this._sp[key].txtIn}
 Writ.prototype.update=function (){
+    const pos=this.parent.pos
     for(let key in this._text){
         if(this._sp[key].txtIn){
             if(!Config.textspeed||!this._style[key].interval){
@@ -829,8 +836,15 @@ Writ.prototype.update=function (){
         this._sp[key].rotation= (data.rota||0) /180 * Math.PI;
         this._sp[key].scale.x= data.ox===undefined?1:data.ox
         this._sp[key].scale.y= data.oy===undefined?1:data.oy
-        this._sp[key].skew.x= (data.sx|0)/180 * Math.PI
+        this._sp[key].skew.x= (data.sx||0)/180 * Math.PI
         this._sp[key].skew.y= (data.sy||0)/180 * Math.PI
+        if(pos){
+            this._sp[key].y-= pos.top
+            const h= pos.h
+            if(data.y-pos.top<-5) this._sp[key].alpha=0
+            if(data.y-pos.top>h) this._sp[key].alpha=0
+            pos.mh=Math.max(0,data.y)
+        }
     }
     this.time++
 }
@@ -854,8 +868,10 @@ Handler.prototype.restore=function() {
     this._touch = [-1, -1, -1, -1, -1, -1];
     this._activa = true;
 };
-
-
+Handler.prototype.hide=function (){
+    this._touch = [-1, -1, -1, -1, -1, -1];
+    this._data = [0, -1, 0, -1, 0, -1, 0];
+}
 Handler.prototype.update = function(x, y, cancelled, pressed, item) {
    if (this._activa) {
         let itemWidth = item.width*item.scale.x;

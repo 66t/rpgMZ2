@@ -96,6 +96,8 @@ Identity.prototype.makeGlobalInfo = function() {
     const info = {};
     info.info=[]
     info.bgm=[]
+    info.actors=[]
+    info.image=[]
     return info
 }
 
@@ -148,4 +150,5 @@ Identity.prototype.webStorageKey = function(savefileId) {
     else if (savefileId === 0) return 'RPG Global';
     else return 'RPG save%1'.format(savefileId);
 }
+
 LIM.$Identity=new Identity()

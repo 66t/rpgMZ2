@@ -50,7 +50,8 @@
                         { src: "04-database" },
                         { src: "05-music" },
                         { src: "06-photo" },
-                        { src: "07-mes" }
+                        { src: "07-mes" },
+                        { src: "08-contacts" }
                     ]
                 },
             ]},

@@ -16,7 +16,7 @@ LIMScene_theater_window.prototype.initImage = function() {
 }
 LIMScene_theater_window.prototype.initColor=function (){
     this._color={}
-    this.setColor("window","#fff8")
+    this.setColor("window","#fffb")
     this.setColor("select","#4444")
 }
 LIMScene_theater_window.prototype.initAdorn=function (){

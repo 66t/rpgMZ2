@@ -9,14 +9,33 @@ LIMScene_title_window.prototype.initialize = function (orgin) {
 LIMScene_title_window.prototype.initImage = function() {
     this.img = {
         "window":["ui/windows","window"+Config.window],
-        "pointer":["ui/windows"]
+        "pointer":["ui/windows"],
+        "D1_01":["cg"],
+        "D1_02":["cg"],
+        "D1_03":["cg"],
+        "E2_01":["cg"],
+        "A1_01":["cg"],
+        "A2_01":["cg"],
+        "A3_01":["cg"],
+        "A4_01":["cg"],
+        "A5_01":["cg"],
+        "A6_01":["cg"],
+        "A7_01":["cg"],
+        "A8_01":["cg"],
+        "A9_01":["cg"],
+        "A10_01":["cg"],
+        "A11_01":["cg"],
+        "A12_01":["cg"],
+        "A13_01":["cg"],
+        "A14_01":["cg"],
+        "A15_01":["cg"]
     }
 }
 LIMScene_title_window.prototype.initColor=function (){
     this._color={}
     this.setColor("back0","#f0f0f0")
     this.setColor("back1","#afafaf")
-    this.setColor("window","#fff8")
+    this.setColor("window","#fffb")
     this.setColor("select","#4444")
 }
 LIMScene_title_window.prototype.initAdorn=function (){
@@ -76,12 +95,12 @@ LIMScene_title_window.prototype.initFps=function (){
     this.setAdorn("t5","text","",{},"1%","1%",210,0,1,5,0,0)
     this.setAdorn("t6","text","",{},"1%","1%",350,0,1,5,0,0)
     this.drawAdorn()
-    this.addText("t1", {anch: "t1",fontSize:112,fontFamily:"dot",txt:"L",adso:5,"fill":["#111","#333"]})
-    this.addText("t2", {anch: "t2",fontSize:112,fontFamily:"dot",txt:"i",adso:5,"fill":["#222","#444"]})
-    this.addText("t3", {anch: "t3",fontSize:112,fontFamily:"dot",txt:"m",adso:5,"fill":["#333","#666"]})
-    this.addText("t4", {anch: "t4",fontSize:112,fontFamily:"dot",txt:"p",adso:5,"fill":["#666","#333"]})
-    this.addText("t5", {anch: "t5",fontSize:112,fontFamily:"dot",txt:"i",adso:5,"fill":["#444","#222"]})
-    this.addText("t6", {anch: "t6",fontSize:112,fontFamily:"dot",txt:"d",adso:5,"fill":["#333","#111"]})
+    this.addText("t1", {anch: "t1",fontSize:112,fontFamily:"font",txt:"L",adso:5,"fill":["#111","#333"]})
+    this.addText("t2", {anch: "t2",fontSize:112,fontFamily:"font",txt:"i",adso:5,"fill":["#222","#444"]})
+    this.addText("t3", {anch: "t3",fontSize:112,fontFamily:"font",txt:"m",adso:5,"fill":["#333","#666"]})
+    this.addText("t4", {anch: "t4",fontSize:112,fontFamily:"font",txt:"p",adso:5,"fill":["#666","#333"]})
+    this.addText("t5", {anch: "t5",fontSize:112,fontFamily:"font",txt:"i",adso:5,"fill":["#444","#222"]})
+    this.addText("t6", {anch: "t6",fontSize:112,fontFamily:"font",txt:"d",adso:5,"fill":["#333","#111"]})
 }
 LIMScene_title_window.prototype.condFps=function (){
     if(this.run.time<=180){

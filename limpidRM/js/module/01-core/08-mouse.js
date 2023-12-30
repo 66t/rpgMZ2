@@ -15,7 +15,8 @@ Mouse.prototype.initialize = function () {
       if(i<119) { 
           if(i%10===0) {
               const b = new Sprite(new Bitmap(30, 30))
-              b.bitmap.drawStar(15, 15, 4,15, "#1110", "#1118", 3)
+              b.blendMode=(i%3)
+              b.bitmap.drawStar(15, 15, 4,15, "#fffb", "#111", 3)
               b.anchor.set(0.5, 0.5)
               this.addChild(b)
           }
