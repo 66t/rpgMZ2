@@ -1,0 +1,144 @@
+﻿@startuml
+'https://plantuml.com/object-diagram
+
+map 物品 {
+资源=>Resources
+材料=>Materials
+加工品=>Processed
+造物=>Aritifact
+}
+
+map 资源 {
+矿物=>Minerals
+生物质=>Biomass
+}
+map 材料 {
+能源=>Energy
+金属=>Metals
+晶体=>Crystals
+泡沫=>Foam
+宝石=>Gems
+食材=>Ingredients
+废料=>Waste
+}
+map 加工品 {
+日用品=>Goods
+食品=>Food
+零件=>Components
+工具=>Tools
+}
+map 造物 {
+设备=>Devices
+晶体管=>Transistor
+机械=>Machinery
+仪器=>Instruments
+}
+
+物品::资源 -up-> 资源
+物品::材料 -right-> 材料
+物品::加工品 -left-> 加工品
+物品::造物 --> 造物
+
+map 矿物 {
+晶石=>Gem 
+燃石球=>Ignite Sphere
+液态火=>Liquid fire
+艾米特=>Emythite
+以瑟莱斯=>Etherex 
+环素=>Mobius 
+磁引丝=>Magnet Weave
+金絮=>Aurific-silken
+芳香锦=>Aromasilk
+冰锦=>Cryosilk 
+螺线冰=>Spiraline 
+光玻=>Lumiglass 
+蓝燃石=>Azufire 
+热岩石=>Hermal Rocks
+艾因石=>Aeinstone 
+阿尔奇石=>Argetite 
+均衡石=>Equilithe
+星辰石=>Stellarite 
+浮晶=>Drifteonite
+准石=>Quasistone 
+源核=>Corenium
+水矿=>Hydroxite 
+彩虹尘=>Rainbodium
+琉璃沫=>Vitreglycerol
+黑脂=>Black Resin 
+雪糕泥=>Iceslush Mud
+太阳露=>Solar Dewdrops 
+雾霭球=>Mistorb
+乳砂=>Microsands Emulsion 
+热液泡沫=>Hydrothermal Foam 
+}
+map 生物质 {
+元胞=>cell
+自在体=>self
+混沌=>chaos
+像素=>pixel
+迷因=>meme
+}
+资源::矿物 -right-> 矿物
+资源::生物质 -left-> 生物质
+
+map 元胞 {
+块=>Block
+蜂巢=>Hive 
+双极子=>Bipole
+巨口=>Eater
+脉冲=>Pulsar
+时钟=>Clock
+滑翔机=>Glider
+蚂蚁=>Ant 
+橡子=>Acorn
+蛇=>Snake
+}
+map 自在体 {
+雪花=>Snow 
+海绵=>Sponge
+瓦片=>Tile
+蕨=>Fern
+刺胞=>Cnidaria 
+曼德博球=>Mandelbulb 
+}
+map 混沌 {
+吸引子=>Attractor 
+蝴蝶=>Butterfly 
+富文本=>Rich Text
+混沌之种=>Chaos Seed 
+噪点=>Noise
+纠缠=>Entangled
+}
+map 像素 {
+瓦片=>Tile
+图元=>Graphic Elements 
+连接网=>Web 
+胶带=>Tape
+标识键=>Key
+针头=>Needle
+补丁=>Patch
+}
+map 迷因 {
+音符=>Note
+猫因子=>CatMeme
+三体=>Three-Body
+}
+生物质::元胞 -up-> 元胞
+生物质::自在体 -up--> 自在体
+生物质::混沌 -left-> 混沌
+生物质::像素 --> 像素
+生物质::迷因 ---> 迷因
+
+map 谐律 {
+}
+map 范式 {
+}
+map 结构 {
+}
+map 模型 {
+}
+
+@enduml
+
+
+概率  
