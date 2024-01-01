@@ -40,43 +40,17 @@ map 造物 {
 物品::造物 --> 造物
 
 map 矿物 {
-晶石=>Gem 
-燃石球=>Ignite Sphere
-液态火=>Liquid fire
-艾米特=>Emythite
-以瑟莱斯=>Etherex 
-环素=>Mobius 
-磁引丝=>Magnet Weave
-金絮=>Aurific-silken
-芳香锦=>Aromasilk
-冰锦=>Cryosilk 
-螺线冰=>Spiraline 
-光玻=>Lumiglass 
-蓝燃石=>Azufire 
-热岩石=>Hermal Rocks
-艾因石=>Aeinstone 
-阿尔奇石=>Argetite 
-均衡石=>Equilithe
-星辰石=>Stellarite 
-浮晶=>Drifteonite
-准石=>Quasistone 
-源核=>Corenium
-水矿=>Hydroxite 
-彩虹尘=>Rainbodium
-琉璃沫=>Vitreglycerol
-黑脂=>Black Resin 
-雪糕泥=>Iceslush Mud
-太阳露=>Solar Dewdrops 
-雾霭球=>Mistorb
-乳砂=>Microsands Emulsion 
-热液泡沫=>Hydrothermal Foam 
+核=>Core
+元=>Meta
+源=>Form
+模=>Model
 }
 map 生物质 {
-元胞=>cell
-自在体=>self
-混沌=>chaos
-像素=>pixel
-迷因=>meme
+元胞=>Cell
+自在体=>Self
+混沌=>Chaos
+像素=>Pixel
+迷因=>Meme
 }
 资源::矿物 -right-> 矿物
 资源::生物质 -left-> 生物质
@@ -129,15 +103,49 @@ map 迷因 {
 生物质::像素 --> 像素
 生物质::迷因 ---> 迷因
 
-map 谐律 {
+map 核 {
+燃石球=>Ignite Sphere
+雾霭球=>Mistorb
+液态火=>Liquid Fire
+蓝燃石=>Azufire
+水矿=>Hydroxite
+艾米特=>Emythite
+以瑟莱斯=>Etherex
+螺线冰=>Spiraline
 }
-map 范式 {
+map 元 {
+环素=>Mobius 
+浮晶=>Drifteonite
+光玻=>Lumiglass
+磁引丝=>Magnet Weave
+金絮=>Aurific-silken
+芳香锦=>Aromasilk
+冰锦=>Cryosilk 
 }
-map 结构 {
+map 源 {
+源核=>Corenium
+彩虹尘=>Rainbodium
+琉璃沫=>Vitreglycerol
+黑脂=>Black Resin 
+雪糕泥=>Iceslush Mud
+太阳露=>Solar Dewdrops
+乳砂=>Microsands Emulsion 
+热液泡沫=>Hydrothermal Foam
 }
-map 模型 {
+map 模 {
+晶石=>Gem
+准石=>Quasistone 
+热岩石=>Hermal Rocks
+艾因石=>Aeinstone 
+阿尔奇石=>Argetite 
+均衡石=>Equilithe
+星辰石=>Stellarite
 }
 
+矿物::核 -up-> 核
+矿物::元 -right-> 元
+矿物::源 --> 源
+矿物::模 --> 模
 @enduml
 
 
